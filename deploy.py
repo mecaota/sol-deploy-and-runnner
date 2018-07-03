@@ -1,13 +1,13 @@
 # coding: utf-8
 
-import binascii
 import sys
 import json
-import subprocess
-from collections import OrderedDict
-from functools import partial
+from getpass import getpass
+
+# web3.py & solc
 from solc import compile_source
 from web3 import Web3,IPCProvider, HTTPProvider
+from web3.contract import ConciseContract
 
 def argv_parser():
 	results = {}
@@ -31,8 +31,13 @@ elif "ipc" in args:
 else:
 	web3 = Web3(IPCProvider('../geth.ipc'))
 
+if "coinbase" in args:
+	web3.eth.defaultAccount = args["coinbase"]
+else:
+	web3.eth.defaultAccount = web3.eth.accounts[0]
 
-### compiled data load OR compile
+
+### compiled data load, or compile
 
 if ("bin" in args) and ("abi" in args):
 	bin = args["bin"]
@@ -41,18 +46,22 @@ if ("bin" in args) and ("abi" in args):
 else:
 	bin = ""
 	abi = {}
-	#solc_codes = ["solc", "--abi", "--bin", args[0]]
-	#with open(args[0]) as source:
-	#	compiled_sol = compile_source(source)
-	#	print(compiled_sol)
-	res = subprocess.run(solc_codes, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
-	print("output result")
-	for output in res.stdout.splitlines():
-		print(output)
-	#print(res.splitlines)
 
 print("---------- input data ----------")
 print("----- bin -----")
 print(bin)
 print("----- abi -----")
 print (abi)
+print("--------------------------------")
+
+## coinbase account password input form
+coinbase_pwd = getpass(prompt = "Please input coinbase account password: ")
+while not web3.personal.unlockAccount(web3.eth.coinbase, coinbase_pwd):
+	coinbase_pwd = getpass(prompt = "Missed password. Please retype coinbase account password: ")
+
+## contract deploy
+print("Now deploying, please wait...")
+contract_obj = web3.eth.contract(abi=abi, bytecode=bin)
+tx_address = web3.eth.waitForTransactionReceipt(contract_obj.constructor().transact()).contractAddress
+web3.personal.lockAccount(web3.eth.coinbase)
+print(tx_address)
