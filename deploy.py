@@ -41,7 +41,6 @@ else:
 
 if ("bin" in args) and ("abi" in args):
 	bin = args["bin"]
-	#abi = json.loads(args["abi"], object_pairs_hook=OrderedDict )
 	abi = args["abi"]
 else:
 	bin = ""
