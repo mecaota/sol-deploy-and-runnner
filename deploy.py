@@ -20,6 +20,14 @@ def argv_parser():
 			print("Missed Input. Try again...")
 	return results
 
+def yes_no_input(message):
+	while True:
+		choice = input(message + " 'yes' or 'no' [Y/n]: ").lower()
+		if choice in ['y', 'ye', 'yes', '']:
+			return True
+		elif choice in ['n', 'no']:
+			return False
+
 args = argv_parser()
 
 ### eth chain connection
@@ -59,8 +67,11 @@ while not web3.personal.unlockAccount(web3.eth.coinbase, coinbase_pwd):
 	coinbase_pwd = getpass(prompt = "Missed password. Please retype coinbase account password: ")
 
 ## contract deploy
-print("Now deploying, please wait...")
 contract_obj = web3.eth.contract(abi=abi, bytecode=bin)
+if not yes_no_input("Do you continue to deploy?"):
+	print("Contract deploy process canceled.")
+	sys.exit(0)
+print("Now deploying, please wait...")
 tx_address = web3.eth.waitForTransactionReceipt(contract_obj.constructor().transact()).contractAddress
 web3.personal.lockAccount(web3.eth.coinbase)
 print("Contract address published!: " + str(tx_address))
