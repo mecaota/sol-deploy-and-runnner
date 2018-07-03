@@ -20,6 +20,14 @@ def argv_parser():
 			print("Missed Input. Try again...")
 	return results
 
+def yes_no_input(message):
+	while True:
+		choice = input(message + " 'yes' or 'no' [Y/n]: ").lower()
+		if choice in ['y', 'ye', 'yes', '']:
+			return True
+		elif choice in ['n', 'no']:
+			return False
+
 args = argv_parser()
 
 ### eth chain connection
@@ -41,7 +49,6 @@ else:
 
 if ("bin" in args) and ("abi" in args):
 	bin = args["bin"]
-	#abi = json.loads(args["abi"], object_pairs_hook=OrderedDict )
 	abi = args["abi"]
 else:
 	bin = ""
@@ -60,8 +67,16 @@ while not web3.personal.unlockAccount(web3.eth.coinbase, coinbase_pwd):
 	coinbase_pwd = getpass(prompt = "Missed password. Please retype coinbase account password: ")
 
 ## contract deploy
-print("Now deploying, please wait...")
 contract_obj = web3.eth.contract(abi=abi, bytecode=bin)
+if not yes_no_input("Do you continue to deploy?"):
+	print("Contract deploy process canceled.")
+	sys.exit(0)
+print("Now deploying, please wait...")
 tx_address = web3.eth.waitForTransactionReceipt(contract_obj.constructor().transact()).contractAddress
 web3.personal.lockAccount(web3.eth.coinbase)
-print(tx_address)
+print("Contract address published!: " + str(tx_address))
+
+## abi & tx_address save to file
+with open("contracts.tsv", "a") as file:
+	file.write(str(tx_address) + "\t" + str(abi) + "\t" + str(bin) + "\n")
+	print("Contract Address & ABI & BIN was written in contracts.tsv")
