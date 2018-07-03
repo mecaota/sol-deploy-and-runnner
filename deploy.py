@@ -64,3 +64,7 @@ contract_obj = web3.eth.contract(abi=abi, bytecode=bin)
 tx_address = web3.eth.waitForTransactionReceipt(contract_obj.constructor().transact()).contractAddress
 web3.personal.lockAccount(web3.eth.coinbase)
 print(tx_address)
+
+## abi & tx_address save to file
+with open("contracts.tsv", "a") as file:
+	file.write(str(tx_address) + "\t" + str(abi) + "\t" + str(bin) + "\n")
