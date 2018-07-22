@@ -2,6 +2,8 @@
 
 import sys
 import json
+import warnings
+from jsonpath_rw import parse
 from getpass import getpass
 
 # web3.py & solc
@@ -28,6 +30,24 @@ def yes_no_input(message):
 		elif choice in ['n', 'no']:
 			return False
 
+def compile_sol(source, contract_name=""):
+	result = []
+	abi = ""
+	bin = ""
+	with open(args["source"], "r") as f:
+		compiled = compile_source(f.read())
+		if contract_name == "":
+			json_expr = parse("$..['bin', 'abi']")
+			json_bin_abi = [match.value for match in json_expr.find(compiled)]
+			if len(json_bin_abi) > 2:
+				warnmsg = "If you have more than two contract classes, we recommend that you specify a contract name option."
+				warnings.warn(warnmsg , RuntimeWarning, 3)
+			bin, abi = json_bin_abi[:2]
+		else:
+			json_expr = parse("$..['bin', 'abi']")
+			bin, abi = [match.value for match in json_expr.find(compiled["<stdin>:" + contract_name])]
+	return bin, abi
+
 args = argv_parser()
 
 ### eth chain connection
@@ -47,9 +67,17 @@ else:
 
 ### compiled data load, or compile
 
+bin = ""
+abi = ""
+
 if ("bin" in args) and ("abi" in args):
 	bin = args["bin"]
 	abi = args["abi"]
+elif "source" in args:
+	if "contract_name" in args:
+		bin, abi = compile_sol(args["source"], args["contract_name"])
+	else:
+		bin, abi = compile_sol(args["source"])
 else:
 	bin = ""
 	abi = {}
@@ -72,11 +100,11 @@ if not yes_no_input("Do you continue to deploy?"):
 	print("Contract deploy process canceled.")
 	sys.exit(0)
 print("Now deploying, please wait...")
-tx_address = web3.eth.waitForTransactionReceipt(contract_obj.constructor().transact()).contractAddress
+tx_address = web3.eth.waitForTransactionReceipt(contract_obj.constructor().transact(), 300).contractAddress
 web3.personal.lockAccount(web3.eth.coinbase)
 print("Contract address published!: " + str(tx_address))
 
 ## abi & tx_address save to file
 with open("contracts.tsv", "a") as file:
-	file.write(str(tx_address) + "\t" + str(abi) + "\t" + str(bin) + "\n")
+	file.write(str(input("Contract name: ")) + "\t"  + str(tx_address) + "\t" + str(abi) + "\t" + str(bin) + "\n")
 	print("Contract Address & ABI & BIN was written in contracts.tsv")
