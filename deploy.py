@@ -2,7 +2,7 @@
 
 import sys
 import json
-from collections import OrderedDict
+import warnings
 from jsonpath_rw import parse
 from getpass import getpass
 
@@ -38,9 +38,13 @@ def compile_sol(source, contract_name=""):
 		compiled = compile_source(f.read())
 		if contract_name == "":
 			json_expr = parse("$..['bin', 'abi']")
-			bin, abi = [match.value for match in json_expr.find(compiled)]
+			json_bin_abi = [match.value for match in json_expr.find(compiled)]
+			if len(json_bin_abi) > 2:
+				warnmsg = "If you have more than two contract classes, we recommend that you specify a contract name option."
+				warnings.warn(warnmsg , RuntimeWarning, 3)
+			bin, abi = json_bin_abi[:2]
 		else:
-			json_expr = parse("$.['bin', 'abi']")
+			json_expr = parse("$..['bin', 'abi']")
 			bin, abi = [match.value for match in json_expr.find(compiled["<stdin>:" + contract_name])]
 	return bin, abi
 
@@ -102,5 +106,5 @@ print("Contract address published!: " + str(tx_address))
 
 ## abi & tx_address save to file
 with open("contracts.tsv", "a") as file:
-	file.write(str(tx_address) + "\t" + str(abi) + "\t" + str(bin) + "\n")
+	file.write(str(input("Contract name: ")) + "\t"  + str(tx_address) + "\t" + str(abi) + "\t" + str(bin) + "\n")
 	print("Contract Address & ABI & BIN was written in contracts.tsv")
