@@ -29,20 +29,21 @@ def yes_no_input(message):
                 elif choice in ['n', 'no']:
                         return False
 
-def open_contract(source, name):
+def open_contract(source, contract_name):
         tsv = pandas.read_csv(source, sep="\t", header=None)
-        tsv.columns = ["name", "txaddress", "abi", "bin"]
-        tsv =  tsv[tsv["name"] == name]
+        tsv.columns = ["name", "tx_address", "abi", "bin"]
+        tsv =  tsv[tsv["name"] == contract_name]
         return tsv.to_dict(orient="list")
 
 def contract_run(contract):
-    method = ""
-    result = []
-    while method != "exit":
-        method = input("Please type contract functions method: ")
-        runner = contract.functions[method]
-        result.push(runner(1).call())
-    return result
+        method = ""
+        result = []
+        while method != "exit":
+                print(json.loads(contract.abi))
+                method = input("Please type contract functions method: ")
+                runner = contract.functions[method]
+                result.push(runner(1).call())
+        return result
 
 args = argv_parser()
 
