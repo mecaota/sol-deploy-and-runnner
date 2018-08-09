@@ -34,14 +34,15 @@ def open_contract(source, contract_name):
 	print(tsv["tx_address"][0])
 	return web3.eth.contract(abi=ast.literal_eval(tsv["abi"][0]), address=tsv["tx_address"][0])
 
-def open_prompt(contract):
+def open_prompt(web3, contract):
 	func = contract.functions
 	print()
 	start_disp = "----------Contract functions----------\n"
 	start_disp += str(contract.all_functions()) + "\n"
 	start_disp += "----------Already defined variable and functions----------\n"
 	start_disp += "func = contract.functions\n"
-	start_disp += "contract \#Contract Object"
+	start_disp += "contract = Contract Object\n"
+	start_disp += "web3 = web3 Object\n"
 	start_disp += "----------------------------------------\n"
 	code.InteractiveConsole(locals()).interact(banner=start_disp)
 
@@ -72,7 +73,7 @@ while not web3.personal.unlockAccount(web3.eth.coinbase, coinbase_pwd):
 	coinbase_pwd = getpass(prompt = "Missed password. Please retype coinbase account password: ")
 
 ## contract runner
-open_prompt(contract)
+open_prompt(web3, contract)
 
 ## exit process
 web3.personal.lockAccount(web3.eth.coinbase)
