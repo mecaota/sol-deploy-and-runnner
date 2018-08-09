@@ -46,6 +46,13 @@ def open_prompt(web3, contract):
 	start_disp += "----------------------------------------\n"
 	code.InteractiveConsole(locals()).interact(banner=start_disp)
 
+def unlock_account_prompt(web3, account):
+	## coinbase account password input form
+	coinbase_pwd = getpass(prompt = "Please input coinbase account password: ")
+	while not web3.personal.unlockAccount(account, coinbase_pwd):
+		coinbase_pwd = getpass(prompt = "Missed password. Please retype coinbase account password: ")
+	return web3
+
 args = argv_parser()
 
 ### eth chain connection
@@ -67,10 +74,9 @@ else:
 ### contract load
 contract = open_contract(args["source"], args["contract_name"])
 print("-----contract loaded-----")
+
 ## coinbase account password input form
-coinbase_pwd = getpass(prompt = "Please input coinbase account password: ")
-while not web3.personal.unlockAccount(web3.eth.coinbase, coinbase_pwd):
-	coinbase_pwd = getpass(prompt = "Missed password. Please retype coinbase account password: ")
+web3 = unlock_account_prompt(web3, web3.eth.coinbase)
 
 ## contract runner
 open_prompt(web3, contract)
