@@ -34,8 +34,8 @@ def open_contract(source, contract_name):
 	print(tsv["tx_address"][0])
 	return web3.eth.contract(abi=ast.literal_eval(tsv["abi"][0]), address=tsv["tx_address"][0])
 
-def open_prompt(web3, contract):
-	func = contract.functions
+def open_prompt():
+	#func = contract.functions
 	print()
 	start_disp = "----------Contract functions----------\n"
 	start_disp += str(contract.all_functions()) + "\n"
@@ -43,10 +43,12 @@ def open_prompt(web3, contract):
 	start_disp += "func = contract.functions\n"
 	start_disp += "contract = Contract Object\n"
 	start_disp += "web3 = web3 Object\n"
+	start_disp += "unlock_account(account)\n"
 	start_disp += "----------------------------------------\n"
-	code.InteractiveConsole(locals()).interact(banner=start_disp)
+	#code.InteractiveConsole(locals()).interact(banner=start_disp)
+	code.InteractiveConsole(globals()).interact(banner=start_disp)
 
-def unlock_account_prompt(web3, account):
+def unlock_account(account):
 	## coinbase account password input form
 	coinbase_pwd = getpass(prompt = "Please input coinbase account password: ")
 	while not web3.personal.unlockAccount(account, coinbase_pwd):
@@ -75,11 +77,15 @@ else:
 contract = open_contract(args["source"], args["contract_name"])
 print("-----contract loaded-----")
 
+## functions for prompt
+func = contract.functions
+coinbase = web3.eth.coinbase
+
 ## coinbase account password input form
-web3 = unlock_account_prompt(web3, web3.eth.coinbase)
+web3 = unlock_account(coinbase)
 
 ## contract runner
-open_prompt(web3, contract)
+open_prompt()
 
 ## exit process
 web3.personal.lockAccount(web3.eth.coinbase)
