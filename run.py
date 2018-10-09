@@ -38,13 +38,14 @@ def open_prompt():
 	#func = contract.functions
 	print()
 	start_disp = "----------Contract functions----------\n"
-	start_disp += str(contract.all_functions()) + "\n"
-	start_disp += "----------Already defined variable and functions----------\n"
+	for value in contract.all_functions():
+		start_disp += str(value) + "\n"
+	start_disp += "\n----------Already main defined variable and functions----------\n"
 	start_disp += "func = contract.functions\n"
 	start_disp += "contract = Contract Object\n"
 	start_disp += "web3 = web3 Object\n"
 	start_disp += "unlock_account(account)\n"
-	start_disp += "----------------------------------------\n"
+	start_disp += "\n----------------------------------------\n"
 	#code.InteractiveConsole(locals()).interact(banner=start_disp)
 	code.InteractiveConsole(globals()).interact(banner=start_disp)
 
